@@ -1,6 +1,11 @@
-body{
-margin:0;
-background:#020617;
-font-family:Arial, sans-serif;
-color:white;
+html {
+  background: #050607;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
 }

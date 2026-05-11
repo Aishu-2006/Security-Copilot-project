@@ -1,16 +1,43 @@
-# React + Vite
+# Security Copilot AI Agents Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend for an autonomous security operations dashboard. The interface presents live telemetry, AI agent triage, incident priority, vulnerability exposure, breach summary, and network topology analysis.
 
-Currently, two official plugins are available:
+## Run The Frontend
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Open the Vite URL shown in the terminal, usually:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```text
+http://localhost:5173
+```
 
-## Expanding the ESLint configuration
+## Optional Backend
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The frontend reads from these FastAPI endpoints when the backend is running:
+
+```text
+GET http://127.0.0.1:8000/alerts
+GET http://127.0.0.1:8000/vulnerabilities
+GET http://127.0.0.1:8000/breach-analysis
+```
+
+If the backend is not running, the dashboard automatically uses demo telemetry so the presentation still works.
+
+## Implemented Views
+
+- Command dashboard with anomaly threshold, containment rate, entropy, and active model metrics.
+- Live telemetry ingestion table with risk scoring and status badges.
+- AI Copilot rail with incident summary and recommended containment action.
+- Agent summaries for triage, priority routing, and breach response.
+- Network topology and flow analysis with regional destinations and cloud sync status.
+
+## Validation
+
+```bash
+npm run lint
+npm run build
+```
