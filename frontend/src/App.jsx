@@ -3,78 +3,12 @@ import axios from "axios";
 import "./App.css";
 
 const fallbackAlerts = [
-  {
-    threat: "Ransomware Activity",
-    severity: "Critical",
-    priority: "P1",
-    entity: "system_blr",
-    pair: "43.252.176.8 -> 142.250.240.4",
-    score: 91,
-    status: "Contain now",
-    source: "Endpoint EDR",
-    signal: "Mass file rename, encryption behavior, shadow copy delete command",
-    firstSeen: "20:38:06",
-  },
-  {
-    threat: "Credential Abuse",
-    severity: "High",
-    priority: "P2",
-    entity: "raj.k",
-    pair: "112.133.201.5 -> 142.250.176.90",
-    score: 78,
-    status: "Block session",
-    source: "Identity Logs",
-    signal: "Impossible travel login and repeated MFA challenge failures",
-    firstSeen: "20:38:02",
-  },
-  {
-    threat: "Suspicious Login Attempt",
-    severity: "Medium",
-    priority: "P3",
-    entity: "priya.s",
-    pair: "103.1.1.45 -> 142.250.227.246",
-    score: 52,
-    status: "Verify user",
-    source: "SIEM Correlation",
-    signal: "New device fingerprint with unusual access time",
-    firstSeen: "20:37:59",
-  },
-  {
-    threat: "Phishing Email Attack",
-    severity: "Medium",
-    priority: "P3",
-    entity: "ashok.v",
-    pair: "43.252.176.8 -> 142.250.216.83",
-    score: 58,
-    status: "Quarantine mail",
-    source: "Email Gateway",
-    signal: "Suspicious attachment hash and spoofed sender domain",
-    firstSeen: "20:37:55",
-  },
-  {
-    threat: "Unauthorized Access Attempt",
-    severity: "High",
-    priority: "P2",
-    entity: "mumbai-fw",
-    pair: "18.139.22.45 -> 10.20.4.18",
-    score: 83,
-    status: "Deny route",
-    source: "Firewall / VPC Flow",
-    signal: "Blocked admin port scan from untrusted regional IP",
-    firstSeen: "20:37:52",
-  },
-  {
-    threat: "Malware Detected",
-    severity: "High",
-    priority: "P2",
-    entity: "finance-laptop-07",
-    pair: "10.20.3.18 -> 185.199.108.153",
-    score: 74,
-    status: "Scan host",
-    source: "Endpoint EDR",
-    signal: "Unsigned executable, persistence registry key, and suspicious outbound beacon",
-    firstSeen: "20:37:48",
-  },
+  { threat: "Ransomware Activity", severity: "Critical", priority: "P1", entity: "system_blr", pair: "43.252.176.8 -> 142.250.240.4", score: 77.6, status: "High Risk", source: "Endpoint EDR", time: "8:38:06 PM" },
+  { threat: "Credential Abuse", severity: "High", priority: "P2", entity: "system_blr", pair: "43.252.176.8 -> 142.250.31.25", score: 81.9, status: "High Risk", source: "Identity Logs", time: "8:38:04 PM" },
+  { threat: "Suspicious Login Attempt", severity: "Medium", priority: "P3", entity: "system_blr", pair: "43.252.176.8 -> 142.250.216.83", score: 42.9, status: "Normal", source: "SIEM Correlation", time: "8:38:02 PM" },
+  { threat: "Unauthorized Access Attempt", severity: "High", priority: "P2", entity: "raj.k", pair: "112.133.201.5 -> 142.250.176.90", score: 13.5, status: "Normal", source: "Firewall / VPC Flow", time: "8:38:00 PM" },
+  { threat: "Phishing Email Attack", severity: "Medium", priority: "P3", entity: "priya.s", pair: "103.1.1.45 -> 142.250.227.246", score: 1.4, status: "Normal", source: "Email Gateway", time: "8:37:59 PM" },
+  { threat: "Malware Detected", severity: "High", priority: "P2", entity: "system_blr", pair: "103.1.1.45 -> 142.250.168.172", score: 27.4, status: "Normal", source: "Endpoint EDR", time: "8:37:57 PM" },
 ];
 
 const fallbackVulnerabilities = [
@@ -83,454 +17,334 @@ const fallbackVulnerabilities = [
   { issue: "Open SSH Port", risk: "Medium", owner: "Network", sla: "24h" },
 ];
 
-const detectionSources = [
-  {
-    key: "Endpoint EDR",
-    name: "Endpoint EDR",
-    feed: "Device behavior",
-    value: "18 events",
-    detail: "Process chains, suspicious scripts, encryption patterns",
-  },
-  {
-    key: "Identity Logs",
-    name: "Identity Logs",
-    feed: "Azure AD / IAM",
-    value: "9 events",
-    detail: "Impossible travel, failed MFA, privilege escalation",
-  },
-  {
-    key: "Firewall / VPC Flow",
-    name: "Firewall / VPC Flow",
-    feed: "Firewall + VPC",
-    value: "26 flows",
-    detail: "Port scans, risky destinations, unusual egress volume",
-  },
-  {
-    key: "Email Gateway",
-    name: "Email Gateway",
-    feed: "Mail security",
-    value: "7 messages",
-    detail: "Spoofed domains, malicious hashes, link detonation",
-  },
+const destinations = [
+  { country: "IND", ip: "13.233.124.12", volume: "4.2 GB total volume", score: 12 },
+  { country: "SGP", ip: "18.139.22.45", volume: "2.1 GB total volume", score: 8 },
+  { country: "JPN", ip: "52.193.18.2", volume: "850 MB total volume", score: 45 },
+  { country: "IND", ip: "43.252.176.8", volume: "600 MB total volume", score: 22 },
+  { country: "CHN", ip: "20.42.161.124", volume: "320 MB total volume", score: 78 },
 ];
 
-const playbooks = {
-  ransomware:
-    "Critical ransomware pattern. Isolate the host, disable the affected account, preserve disk evidence, block command-and-control traffic, and restore only from clean backups.",
-  credential:
-    "Credential abuse suspected. Revoke active sessions, reset the password, enforce MFA, review login geography, and check recent privilege changes.",
-  login:
-    "Suspicious login. Verify the user, compare device fingerprint, check IP reputation, and require step-up authentication.",
-  phishing:
-    "Phishing signal. Quarantine the email, remove matching messages, scan clicked endpoints, and block the sender domain and attachment hash.",
-  unauthorized:
-    "Unauthorized access attempt. Keep deny rule active, block the source IP, check lateral movement, and review exposed admin services.",
-  default:
-    "Investigate by source, score, affected entity, and evidence. Contain high-score alerts first, then close the vulnerable path.",
+const icons = {
+  shield: "M12 3l7 3v5c0 5-3.4 9.4-7 10-3.6-.6-7-5-7-10V6l7-3z",
+  pulse: "M4 12h4l2-6 4 12 2-6h4",
+  nodes: "M5 6h4v4H5zM15 6h4v4h-4zM10 16h4v4h-4zM9 8h6M7 10v3l5 3 5-3v-3",
+  screen: "M4 5h16v11H4zM9 20h6",
+  db: "M5 7c0-2 14-2 14 0v10c0 2-14 2-14 0V7zm0 5c0 2 14 2 14 0",
+  bars: "M5 19V9M12 19V5M19 19v-7",
+  lock: "M7 11h10v9H7zM9 11V8a3 3 0 116 0v3",
+  search: "M10.5 18a7.5 7.5 0 110-15 7.5 7.5 0 010 15zm5.5-2l5 5",
+  refresh: "M20 7v5h-5M4 17v-5h5M18 12a6 6 0 00-10-4M6 12a6 6 0 0010 4",
+  cloud: "M7 18h10a4 4 0 00.8-7.9A6 6 0 006.4 8.7 4.5 4.5 0 007 18z",
 };
 
-function enrichAlert(alert, index) {
-  const template =
-    fallbackAlerts.find((item) => item.threat.toLowerCase() === alert.threat?.toLowerCase()) ||
-    fallbackAlerts[index % fallbackAlerts.length];
-
-  return {
-    ...template,
-    ...alert,
-    source: template.source,
-    signal: template.signal,
-    score: template.score,
-    status: template.status,
-    firstSeen: template.firstSeen,
-  };
-}
-
-function severityClass(value = "") {
-  return value.toLowerCase();
-}
-
-function getPlaybook(text) {
-  const value = text.toLowerCase();
-  if (value.includes("ransomware")) return playbooks.ransomware;
-  if (value.includes("credential")) return playbooks.credential;
-  if (value.includes("login")) return playbooks.login;
-  if (value.includes("phishing")) return playbooks.phishing;
-  if (value.includes("unauthorized") || value.includes("access")) return playbooks.unauthorized;
-  return playbooks.default;
-}
-
-function findMatchingAlert(question, alerts, selectedAlert) {
-  const query = question.toLowerCase();
+function Icon({ name }) {
   return (
-    alerts.find((alert) =>
-      alert.threat
-        .toLowerCase()
-        .split(" ")
-        .some((word) => word.length > 4 && query.includes(word))
-    ) ||
-    selectedAlert ||
-    alerts[0]
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d={icons[name]} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
-function AssistantChat({ alerts, selectedAlert, onSelectAlert }) {
-  const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      text: "Ask about any alert. I can explain where it was detected, how dangerous it is, and what action to take.",
-    },
-  ]);
-
-  const replyFor = (alert, userText) => {
-    const response = `${getPlaybook(`${userText} ${alert.threat}`)} Detected from ${alert.source}. Evidence: ${alert.signal}. Threat score: ${alert.score}/100.`;
-    setMessages((current) => [...current, { role: "user", text: userText }, { role: "assistant", text: response }]);
-  };
-
-  const askAbout = (alert) => {
-    onSelectAlert(alert);
-    replyFor(alert, `What should I do for ${alert.threat}?`);
-  };
-
-  const submitQuestion = (event) => {
-    event.preventDefault();
-    const value = question.trim();
-    if (!value) return;
-    const alert = findMatchingAlert(value, alerts, selectedAlert);
-    onSelectAlert(alert);
-    replyFor(alert, value);
-    setQuestion("");
-  };
-
+function Sparkline({ color = "#6f72ff", values = [18, 16, 17, 15, 28, 13, 17, 22, 19] }) {
+  const points = values.map((value, index) => `${index * 12},${42 - value}`).join(" ");
   return (
-    <section className="assistant-panel">
-      <div className="section-heading">
-        <div>
-          <p className="section-kicker">Response Assistant</p>
-          <h2>Ask what to do next</h2>
-        </div>
-        <span className="priority-pill">{selectedAlert.priority}</span>
-      </div>
-      <div className="quick-prompts">
-        {[...new Map(alerts.map((alert) => [alert.threat, alert])).values()].slice(0, 4).map((alert) => (
-          <button key={alert.threat} type="button" onClick={() => askAbout(alert)}>
-            {alert.threat}
-          </button>
-        ))}
-      </div>
-      <div className="chat-window">
-        {messages.map((message, index) => (
-          <div key={`${message.role}-${index}`} className={`message ${message.role}`}>
-            {message.text}
-          </div>
-        ))}
-      </div>
-      <form className="chat-form" onSubmit={submitQuestion}>
-        <input
-          value={question}
-          onChange={(event) => setQuestion(event.target.value)}
-          placeholder="Ask: how dangerous is ransomware?"
-        />
-        <button type="submit">Send</button>
-      </form>
-    </section>
-  );
-}
-
-function LiveLineGraph({ title, values, color = "#48ffd2" }) {
-  const max = Math.max(...values, 100);
-  const points = values
-    .map((value, index) => {
-      const x = (index / Math.max(values.length - 1, 1)) * 100;
-      const y = 100 - (value / max) * 86 - 7;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <section className="live-graph-card">
-      <div className="section-heading">
-        <div>
-          <p className="section-kicker">Live Graph</p>
-          <h2>{title}</h2>
-        </div>
-        <span>{values[values.length - 1]}</span>
-      </div>
-      <svg className="live-graph" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </section>
-  );
-}
-
-function MiniSparkline({ values, color = "#48ffd2" }) {
-  const max = Math.max(...values, 100);
-  const min = Math.min(...values, 0);
-  const range = Math.max(max - min, 1);
-  const points = values
-    .map((value, index) => {
-      const x = (index / Math.max(values.length - 1, 1)) * 100;
-      const y = 44 - ((value - min) / range) * 34;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg className="mini-sparkline" viewBox="0 0 100 48" preserveAspectRatio="none">
+    <svg className="sparkline" viewBox="0 0 96 48" preserveAspectRatio="none">
       <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function MetricGraphCards({ threatTrend, flowTrend, alerts }) {
-  const latestThreat = threatTrend[threatTrend.length - 1];
-  const latestFlow = flowTrend[flowTrend.length - 1];
-  const containment = Math.max(82, 100 - alerts.filter((alert) => alert.severity === "Critical").length * 4);
-  const modelActivity = alerts.length + 7;
-
+function MetricCard({ icon, label, value, delta, color, values }) {
   return (
-    <section className="metric-graph-grid">
-      <article className="metric-graph-card">
-        <div>
-          <span>Anomaly Threshold</span>
-          <strong>{latestThreat}%</strong>
-        </div>
-        <small>+8.2</small>
-        <MiniSparkline values={threatTrend} color="#6f72ff" />
-      </article>
-      <article className="metric-graph-card">
-        <div>
-          <span>Containment Rate</span>
-          <strong>{containment}%</strong>
-        </div>
-        <small>Stable</small>
-        <MiniSparkline values={[86, 88, 87, 91, 89, 93, containment]} color="#12d6a0" />
-      </article>
-      <article className="metric-graph-card">
-        <div>
-          <span>Network Entropy</span>
-          <strong>{(latestFlow / 100).toFixed(2)}</strong>
-        </div>
-        <small>-0.03</small>
-        <MiniSparkline values={flowTrend} color="#f2a51f" />
-      </article>
-      <article className="metric-graph-card">
-        <div>
-          <span>Active Models</span>
-          <strong>{modelActivity}</strong>
-        </div>
-        <small>Optimized</small>
-        <MiniSparkline values={[8, 10, 9, 12, 8, 11, modelActivity]} color="#ff5fb7" />
-      </article>
-    </section>
-  );
-}
-
-function LiveGraphs({ threatTrend, flowTrend }) {
-  return (
-    <section className="live-graphs">
-      <LiveLineGraph title="Threat score trend" values={threatTrend} color="#48ffd2" />
-      <LiveLineGraph title="Network flow volume" values={flowTrend} color="#ffba4a" />
-    </section>
-  );
-}
-
-function SourceBoard({ selectedSource, onSelectSource }) {
-  return (
-    <section className="source-board">
-      <div className="section-heading">
-        <div>
-          <p className="section-kicker">Detection Sources</p>
-          <h2>Where threats are detected from</h2>
-        </div>
-        <button type="button" className="ghost-button" onClick={() => onSelectSource("All")}>
-          Show all
-        </button>
+    <section className="metric-card">
+      <div className="metric-top">
+        <span className="metric-icon"><Icon name={icon} /></span>
+        <span className="metric-delta" style={{ color }}>{delta}</span>
       </div>
-      <div className="source-grid">
-        {detectionSources.map((source) => (
-          <button
-            key={source.key}
-            type="button"
-            className={`source-card ${selectedSource === source.key ? "selected" : ""}`}
-            onClick={() => onSelectSource(source.key)}
-          >
-            <span>{source.feed}</span>
-            <strong>{source.name}</strong>
-            <b>{source.value}</b>
-            <p>{source.detail}</p>
-          </button>
-        ))}
+      <p>{label}</p>
+      <div className="metric-bottom">
+        <strong>{value}</strong>
+        <Sparkline color={color} values={values} />
       </div>
     </section>
   );
 }
 
-function RiskBrief({ alerts, vulnerabilities, onRefresh, onOpenAssistant, onExportReport }) {
-  const averageScore = Math.round(alerts.reduce((total, alert) => total + alert.score, 0) / alerts.length);
-  const highImpact = alerts.filter((alert) => alert.severity === "Critical" || alert.severity === "High").length;
-
+function TelemetryTable({ alerts }) {
   return (
-    <section className="risk-brief">
-      <div className="risk-copy">
-        <p className="section-kicker">Current Security Posture</p>
-        <h2>{averageScore >= 80 ? "High risk activity in progress" : "Active threats under monitoring"}</h2>
-        <p>
-          Threats are detected by combining endpoint behavior, identity sign-ins, firewall/VPC flow logs, email security,
-          and SIEM correlation rules. Backend agents classify each alert, assign priority, and attach response guidance.
-        </p>
+    <section className="panel telemetry-panel">
+      <div className="panel-heading">
+        <h2><Icon name="pulse" /> Live Telemetry Ingestion</h2>
+        <div className="legend"><span className="critical-dot" /> Critical <span className="verified-dot" /> Verified</div>
       </div>
-      <div className="risk-meter" style={{ "--score": `${averageScore}%` }}>
-        <strong>{averageScore}</strong>
-        <span>Threat score</span>
-      </div>
-      <div className="risk-stats">
-        <div>
-          <b>{alerts.length}</b>
-          <span>Active alerts</span>
-        </div>
-        <div>
-          <b>{highImpact}</b>
-          <span>High impact</span>
-        </div>
-        <div>
-          <b>{vulnerabilities.length}</b>
-          <span>Open exposures</span>
-        </div>
-        <button type="button" onClick={onRefresh}>Refresh telemetry</button>
-        <button type="button" onClick={onOpenAssistant}>Ask assistant</button>
-        <button type="button" onClick={onExportReport}>Export report</button>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Entity</th>
+              <th>Traffic Pair</th>
+              <th>Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {alerts.map((alert, index) => (
+              <tr key={`${alert.threat}-${index}`}>
+                <td>{alert.time}</td>
+                <td className="entity">{alert.entity}</td>
+                <td>{alert.pair}</td>
+                <td>
+                  <span className="score-bar"><span style={{ width: `${Math.min(alert.score, 100)}%` }} /></span>
+                  <b>{alert.score.toFixed(1)}</b>
+                </td>
+                <td><span className={`status-pill ${alert.score > 70 ? "risk" : "normal"}`}>{alert.score > 70 ? "High Risk" : "Normal"}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
 }
 
-function IncidentWorkbench({ alerts, selectedAlert, onSelectAlert, onAsk }) {
+function CopilotRail({ breach, vulnerabilities }) {
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      text: "Ask about an alert, threat level, detection source, or recommended response.",
+    },
+  ]);
+
+  const answerQuestion = (event) => {
+    event.preventDefault();
+    const value = question.trim();
+    if (!value) return;
+
+    const lower = value.toLowerCase();
+    let response = "Review the alert source, score, affected entity, and evidence. Contain high-risk threats first, then validate and remediate the root cause.";
+
+    if (lower.includes("ransomware")) {
+      response = "Ransomware is critical. Isolate the endpoint, disable the account, block command-and-control traffic, preserve evidence, and restore only from clean backups.";
+    } else if (lower.includes("phishing")) {
+      response = "Phishing is usually detected from Email Gateway telemetry. Quarantine the message, remove matching emails, block the sender/domain, and scan clicked endpoints.";
+    } else if (lower.includes("credential") || lower.includes("login")) {
+      response = "Credential or login threats come from Identity Logs and SIEM correlation. Revoke sessions, reset the password, enforce MFA, and review sign-in geography.";
+    } else if (lower.includes("firewall") || lower.includes("network") || lower.includes("access")) {
+      response = "Network threats come from Firewall / VPC Flow logs. Block the source IP, keep deny rules active, check exposed ports, and review lateral movement.";
+    } else if (lower.includes("source") || lower.includes("detect")) {
+      response = "Threats are detected from Endpoint EDR, Identity Logs, Firewall / VPC Flow, Email Gateway, and SIEM Correlation rules.";
+    }
+
+    setMessages((current) => [...current, { role: "user", text: value }, { role: "assistant", text: response }]);
+    setQuestion("");
+  };
+
   return (
-    <section className="workbench">
-      <div className="section-heading">
-        <div>
-          <p className="section-kicker">Incident Workbench</p>
-          <h2>Prioritized threat queue</h2>
+    <aside className="right-rail">
+      <section className="panel chat-panel">
+        <div className="panel-heading">
+          <h2><Icon name="pulse" /> AI Chat Assistant</h2>
         </div>
-      </div>
-      <div className="incident-list">
-        {alerts.map((alert) => (
-          <article key={`${alert.threat}-${alert.entity}`} className={`incident-card ${selectedAlert.threat === alert.threat ? "selected" : ""}`}>
-            <button type="button" className="incident-main" onClick={() => onSelectAlert(alert)}>
-              <span className={`severity ${severityClass(alert.severity)}`}>{alert.severity}</span>
-              <h3>{alert.threat}</h3>
-              <p>{alert.signal}</p>
-              <dl>
-                <div>
-                  <dt>Detected from</dt>
-                  <dd>{alert.source}</dd>
-                </div>
-                <div>
-                  <dt>Affected entity</dt>
-                  <dd>{alert.entity}</dd>
-                </div>
-                <div>
-                  <dt>Traffic pair</dt>
-                  <dd>{alert.pair}</dd>
-                </div>
-              </dl>
-            </button>
-            <div className="incident-side">
-              <strong>{alert.score}</strong>
-              <span>Threat level</span>
-              <b>{alert.status}</b>
-              <button type="button" onClick={() => onAsk(alert)}>
-                Ask assistant
-              </button>
+        <div className="chat-messages">
+          {messages.map((message, index) => (
+            <div key={`${message.role}-${index}`} className={`chat-message ${message.role}`}>
+              {message.text}
             </div>
-          </article>
-        ))}
+          ))}
+        </div>
+        <form className="chat-form" onSubmit={answerQuestion}>
+          <input
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="Ask what to do..."
+          />
+          <button type="submit">Send</button>
+        </form>
+      </section>
+      <section className="panel health-card">
+        <div className="panel-heading">
+          <h2><Icon name="shield" /> System Health</h2>
+          <span className="health">Healthy</span>
+        </div>
+        <dl>
+          <div><dt>Ingestion Engine</dt><dd>Operational</dd></div>
+          <div><dt>Entry Point</dt><dd>{breach.entry_point ?? "Phishing Email"}</dd></div>
+          <div><dt>Affected Systems</dt><dd>{breach.affected_systems ?? 4}</dd></div>
+          <div><dt>Recommended Action</dt><dd>{breach.recommended_action ?? "Isolate infected endpoints immediately."}</dd></div>
+        </dl>
+      </section>
+      <section className="panel health-card">
+        <h2>Exposure Queue</h2>
+        <div className="queue">
+          {vulnerabilities.map((item) => (
+            <div key={item.issue}>
+              <span className={`risk-dot ${item.risk.toLowerCase()}`} />
+              <strong>{item.issue}</strong>
+              <small>{item.owner} - SLA {item.sla}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+    </aside>
+  );
+}
+
+function Dashboard({ alerts, breach, vulnerabilities }) {
+  const metrics = [
+    { icon: "pulse", label: "Anomaly Threshold", value: "92.4%", delta: "+8.2", color: "#6f72ff", values: [18, 16, 17, 15, 30, 14, 18, 23, 19] },
+    { icon: "lock", label: "Containment Rate", value: "100%", delta: "Stable", color: "#12b98f", values: [24, 23, 24, 22, 31, 20, 23, 30, 28] },
+    { icon: "pulse", label: "Network Entropy", value: "0.45", delta: "-0.03", color: "#f2a51f", values: [25, 24, 18, 20, 14, 16, 19, 20, 18] },
+    { icon: "db", label: "Active Models", value: "12", delta: "Optimized", color: "#f15398", values: [12, 20, 14, 13, 18, 15, 21, 24, 28] },
+  ];
+
+  return (
+    <>
+      <section className="metric-grid">
+        {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
+      </section>
+      <div className="dashboard-grid">
+        <TelemetryTable alerts={alerts} />
+        <CopilotRail breach={breach} vulnerabilities={vulnerabilities} />
       </div>
-    </section>
+    </>
   );
 }
 
 function TopologyView() {
-  const flowText = {
-    Email: "Email Gateway detects spoofed domains, malicious attachments, unsafe links, and phishing campaigns.",
-    Identity: "Identity Logs detect impossible travel, password spray, MFA fatigue, and suspicious user sessions.",
-    Cloud: "Cloud telemetry detects risky API calls, unusual storage access, and abnormal VPC flows.",
-    Endpoint: "Endpoint EDR detects malware, ransomware behavior, suspicious scripts, and persistence.",
-    Firewall: "Firewall / VPC Flow detects port scans, blocked admin access, and risky outbound destinations.",
-  };
-  const [selectedFlow, setSelectedFlow] = useState(flowText.Email);
-
   return (
-    <section className="network-page">
-      <div className="flow-map">
-        <div className="flow-center">Secure Core</div>
-        {["Email", "Identity", "Cloud", "Endpoint", "Firewall"].map((item, index) => (
-          <button key={item} type="button" className={`flow-node flow-${index + 1}`} onClick={() => setSelectedFlow(flowText[item])}>
-            {item}
-          </button>
-        ))}
+    <section className="topology-page">
+      <div className="topology-title">
+        <h2><Icon name="nodes" /> Network Topology & Flow Analysis</h2>
+        <div>
+          <button type="button">Show Flow Table</button>
+          <button type="button" className="primary-button">Export Flows</button>
+        </div>
       </div>
-      <div className="network-notes">
-        <p className="section-kicker">Network Detection</p>
-        <h2>Flow evidence</h2>
-        <p>Click a node to see what telemetry is used for detection.</p>
-        <strong className="selected-flow">{selectedFlow}</strong>
-        {["13.233.124.12 - trusted cloud volume", "18.139.22.45 - unusual session burst", "20.42.161.124 - blocked scan"].map((item) => (
-          <span key={item}>{item}</span>
-        ))}
+      <div className="topology-layout">
+        <section className="topology-map">
+          <div className="map-chip"><Icon name="nodes" /> Global Origin Analysis</div>
+          <div className="node hub" />
+          {[1, 2, 3, 4, 5].map((item) => <span key={item} className={`node node-${item}`} />)}
+          {[1, 2, 3, 4, 5].map((item) => <span key={item} className={`link link-${item}`} />)}
+          <div className="topology-stats">
+            <div><span>Total Inbound</span><strong>4.2 GB</strong></div>
+            <div><span>Peak Throughput</span><strong>850 Mbps</strong></div>
+            <div><span>Active Streams</span><strong>1,240</strong></div>
+          </div>
+        </section>
+        <aside className="topology-side">
+          <section className="panel">
+            <h2>Top Regional Destinations (Asia)</h2>
+            <div className="destination-list">
+              {destinations.map((destination) => (
+                <div key={destination.ip} className="destination">
+                  <span>{destination.country}</span>
+                  <div><strong>{destination.ip}</strong><small>{destination.volume}</small></div>
+                  <b className={destination.score > 70 ? "hot" : ""}>{destination.score}</b>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="panel sync-panel">
+            <h2><Icon name="cloud" /> Cloud Sync Status</h2>
+            <p>Real-time synchronization with AWS CloudTrail and Azure Sentinel is currently operational. VPC Flow logs are being ingested with 42ms median latency.</p>
+          </section>
+        </aside>
       </div>
     </section>
   );
 }
 
-function ExposureView({ vulnerabilities, selectedPlan, onCreatePlan }) {
+function SourcesView({ alerts }) {
+  const sources = ["Endpoint EDR", "Identity Logs", "Firewall / VPC Flow", "Email Gateway", "SIEM Correlation"];
+
   return (
-    <section className="exposure-page">
-      <div className="section-heading">
-        <div>
-          <p className="section-kicker">Exposure Management</p>
-          <h2>Vulnerabilities that increase threat impact</h2>
-        </div>
-      </div>
-      <div className="exposure-list">
-        {vulnerabilities.map((item) => (
-          <article key={item.issue}>
-            <span className={`severity ${severityClass(item.risk)}`}>{item.risk}</span>
-            <h3>{item.issue}</h3>
-            <p>Owner: {item.owner} / SLA: {item.sla}</p>
-            <button type="button" onClick={() => onCreatePlan(item)}>Create fix plan</button>
+    <section className="panel page-panel">
+      <h2><Icon name="nodes" /> Detection Sources</h2>
+      <div className="source-list">
+        {sources.map((source) => (
+          <article key={source}>
+            <strong>{source}</strong>
+            <span>{alerts.filter((alert) => alert.source === source).length} active signals</span>
+            <p>
+              {source === "Endpoint EDR" && "Detects ransomware, malware, suspicious scripts, and endpoint behavior."}
+              {source === "Identity Logs" && "Detects credential abuse, suspicious sign-ins, MFA failures, and impossible travel."}
+              {source === "Firewall / VPC Flow" && "Detects unauthorized access, port scans, denied routes, and risky traffic."}
+              {source === "Email Gateway" && "Detects phishing, spoofed domains, unsafe links, and malicious attachments."}
+              {source === "SIEM Correlation" && "Combines endpoint, identity, network, and email events into correlated incidents."}
+            </p>
           </article>
         ))}
       </div>
-      {selectedPlan && (
-        <section className="fix-plan-panel">
-          <p className="section-kicker">Generated Fix Plan</p>
-          <h2>{selectedPlan.issue}</h2>
-          <ol>
-            <li>Assign owner: {selectedPlan.owner}</li>
-            <li>Target remediation SLA: {selectedPlan.sla}</li>
-            <li>Validate affected assets and confirm business owner approval.</li>
-            <li>Apply remediation, retest exposure, and close the finding.</li>
-          </ol>
-        </section>
-      )}
     </section>
   );
 }
 
+function AssetsView({ alerts }) {
+  return (
+    <section className="panel page-panel">
+      <h2><Icon name="screen" /> Protected Assets</h2>
+      <div className="asset-grid">
+        {[...new Map(alerts.map((alert) => [alert.entity, alert])).values()].map((alert) => (
+          <article key={alert.entity}>
+            <strong>{alert.entity}</strong>
+            <span>{alert.source}</span>
+            <p>{alert.threat}</p>
+            <b className={alert.score > 70 ? "asset-risk" : ""}>{alert.score.toFixed(1)}</b>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DataView({ vulnerabilities }) {
+  return (
+    <section className="panel page-panel">
+      <h2><Icon name="db" /> Exposure Data</h2>
+      <div className="source-list">
+        {vulnerabilities.map((item) => (
+          <article key={item.issue}>
+            <strong>{item.issue}</strong>
+            <span>{item.risk} risk</span>
+            <p>Owner: {item.owner}. Remediation SLA: {item.sla}.</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReportsView({ alerts, vulnerabilities }) {
+  const highRisk = alerts.filter((alert) => alert.score > 70).length;
+
+  return (
+    <section className="panel page-panel">
+      <h2><Icon name="bars" /> Security Reports</h2>
+      <div className="report-grid">
+        <article><span>Total Alerts</span><strong>{alerts.length}</strong></article>
+        <article><span>High Risk Alerts</span><strong>{highRisk}</strong></article>
+        <article><span>Open Exposures</span><strong>{vulnerabilities.length}</strong></article>
+        <article><span>Containment</span><strong>100%</strong></article>
+      </div>
+      <p className="report-note">Report summary is generated from live telemetry, vulnerability data, and breach analysis.</p>
+    </section>
+  );
+}
+
+function enrichAlert(alert, index) {
+  return { ...fallbackAlerts[index % fallbackAlerts.length], ...alert };
+}
+
 export default function App() {
+  const [activePage, setActivePage] = useState("dashboard");
   const [alerts, setAlerts] = useState(fallbackAlerts);
   const [vulnerabilities, setVulnerabilities] = useState(fallbackVulnerabilities);
   const [breach, setBreach] = useState({});
-  const [activePage, setActivePage] = useState("dashboard");
-  const [selectedAlert, setSelectedAlert] = useState(fallbackAlerts[0]);
-  const [selectedSource, setSelectedSource] = useState("All");
-  const [lastSync, setLastSync] = useState("Demo data");
-  const [notice, setNotice] = useState("System ready. Select an alert, source, or assistant prompt to begin.");
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [threatTrend, setThreatTrend] = useState([68, 72, 75, 71, 78, 74, 82, 76, 79, 75]);
-  const [flowTrend, setFlowTrend] = useState([42, 48, 45, 56, 62, 58, 66, 71, 69, 74]);
+  const [lastSync, setLastSync] = useState("Simulation Mode");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -540,177 +354,62 @@ export default function App() {
           axios.get("http://127.0.0.1:8000/vulnerabilities"),
           axios.get("http://127.0.0.1:8000/breach-analysis"),
         ]);
-
-        const nextAlerts = alertsResponse.data.map((alert, index) => enrichAlert(alert, index));
-        setAlerts(nextAlerts);
-        setSelectedAlert(nextAlerts[0]);
-        setVulnerabilities(
-          vulnerabilitiesResponse.data.map((item, index) => ({
-            ...fallbackVulnerabilities[index % fallbackVulnerabilities.length],
-            ...item,
-          }))
-        );
+        setAlerts(alertsResponse.data.map((alert, index) => enrichAlert(alert, index)));
+        setVulnerabilities(vulnerabilitiesResponse.data.map((item, index) => ({ ...fallbackVulnerabilities[index % fallbackVulnerabilities.length], ...item })));
         setBreach(breachResponse.data);
         setLastSync(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }));
       } catch {
-        setLastSync("Demo data");
+        setLastSync("Simulation Mode");
       }
     };
-
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setThreatTrend((current) => [...current.slice(1), Math.max(45, Math.min(96, current[current.length - 1] + Math.round(Math.random() * 12 - 5)))]);
-      setFlowTrend((current) => [...current.slice(1), Math.max(30, Math.min(96, current[current.length - 1] + Math.round(Math.random() * 14 - 6)))]);
-    }, 1800);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const visibleAlerts = useMemo(
-    () => (selectedSource === "All" ? alerts : alerts.filter((alert) => alert.source === selectedSource)),
-    [alerts, selectedSource]
-  );
-
-  const nextAction = useMemo(() => getPlaybook(selectedAlert.threat).split(".")[0], [selectedAlert]);
-
-  const selectSource = (source) => {
-    setSelectedSource(source);
-    setNotice(source === "All" ? "Showing alerts from all detection sources." : `Filtered incidents detected from ${source}.`);
-  };
-
-  const refreshTelemetry = () => {
-    setAlerts((current) =>
-      current.map((alert, index) => ({
-        ...alert,
-        score: Math.max(38, Math.min(96, alert.score + (index % 2 === 0 ? 2 : -3))),
-      }))
-    );
-    setLastSync(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }));
-    setNotice("Telemetry refreshed. Scores were recalculated from latest simulated agent signals.");
-  };
-
-  const exportReport = () => {
-    const report = [
-      "Security Copilot AI Agents Platform Report",
-      `Generated: ${new Date().toLocaleString("en-IN")}`,
-      "",
-      ...alerts.map((alert) => `- ${alert.threat} | ${alert.severity} | ${alert.source} | Score ${alert.score}`),
-    ].join("\n");
-    const blob = new Blob([report], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "security-copilot-report.txt";
-    link.click();
-    URL.revokeObjectURL(url);
-    setNotice("Report exported as security-copilot-report.txt.");
-  };
-
-  const askAssistant = (alert) => {
-    setSelectedAlert(alert);
-    setNotice(`Assistant opened for ${alert.threat}.`);
-    setActivePage("assistant");
-  };
+  const navItems = useMemo(() => [
+    ["dashboard", "shield"],
+    ["topology", "pulse"],
+    ["sources", "nodes"],
+    ["assets", "screen"],
+    ["data", "db"],
+    ["reports", "bars"],
+  ], []);
 
   return (
     <div className="app-shell">
-      <aside className="side-nav">
-        <div className="brand-block">
-          <span>SC</span>
-          <b>Copilot</b>
-        </div>
+      <aside className="sidebar">
+        <div className="brand-mark"><Icon name="shield" /></div>
         <nav>
-          {[
-            ["dashboard", "Mission"],
-            ["topology", "Network"],
-            ["assistant", "Assistant"],
-            ["exposure", "Exposure"],
-          ].map(([id, label]) => (
-            <button key={id} type="button" className={activePage === id ? "active" : ""} onClick={() => setActivePage(id)}>
-              {label}
+          {navItems.map(([id, icon]) => (
+            <button key={id} className={activePage === id ? "active" : ""} type="button" onClick={() => setActivePage(id)} title={id}>
+              <Icon name={icon} />
             </button>
           ))}
         </nav>
       </aside>
-
-      <main className="workspace">
-        <header className="hero-bar">
+      <main>
+        <header className="topbar">
           <div>
-            <p className="section-kicker">Autonomous AI Security Agents</p>
-            <h1>Security operations mission control</h1>
-            <p>Live threat detection, source evidence, response recommendations, and analyst chat in one workspace.</p>
+            <p className="eyebrow">Security Co-pilot Platform</p>
           </div>
-          <div className="status-strip">
-            <span>{lastSync} sync</span>
-            <span>Backend: FastAPI agents</span>
-            <span>Recommendation: {nextAction}</span>
+          <div className="topbar-actions">
+            <span className="mode-pill">{lastSync}</span>
+            <label className="search-box"><Icon name="search" /><input placeholder="Search Indian infrastructure..." /></label>
+            <button className="icon-button" type="button" title="Refresh telemetry"><Icon name="refresh" /></button>
+            <button className="profile-button" type="button">A</button>
           </div>
         </header>
-
-        <div className="notice-bar">{notice}</div>
-
-        {activePage === "dashboard" && (
-          <>
-            <RiskBrief
-              alerts={alerts}
-              vulnerabilities={vulnerabilities}
-              onRefresh={refreshTelemetry}
-              onOpenAssistant={() => setActivePage("assistant")}
-              onExportReport={exportReport}
-            />
-            <MetricGraphCards threatTrend={threatTrend} flowTrend={flowTrend} alerts={alerts} />
-            <LiveGraphs threatTrend={threatTrend} flowTrend={flowTrend} />
-            <SourceBoard selectedSource={selectedSource} onSelectSource={selectSource} />
-            <div className="dashboard-layout">
-              <IncidentWorkbench
-                alerts={visibleAlerts}
-                selectedAlert={selectedAlert}
-                onSelectAlert={(alert) => {
-                  setSelectedAlert(alert);
-                  setNotice(`${alert.threat} selected. Detected from ${alert.source}.`);
-                }}
-                onAsk={askAssistant}
-              />
-              <section className="breach-summary">
-                <p className="section-kicker">Breach Agent</p>
-                <h2>Current breach analysis</h2>
-                <dl>
-                  <div>
-                    <dt>Entry point</dt>
-                    <dd>{breach.entry_point ?? "Phishing Email"}</dd>
-                  </div>
-                  <div>
-                    <dt>Affected systems</dt>
-                    <dd>{breach.affected_systems ?? 4}</dd>
-                  </div>
-                  <div>
-                    <dt>Severity</dt>
-                    <dd>{breach.severity ?? "High"}</dd>
-                  </div>
-                  <div>
-                    <dt>Recommended action</dt>
-                    <dd>{breach.recommended_action ?? "Isolate infected endpoints immediately."}</dd>
-                  </div>
-                </dl>
-              </section>
-            </div>
-          </>
-        )}
-
-        {activePage === "topology" && <TopologyView />}
-        {activePage === "assistant" && <AssistantChat alerts={alerts} selectedAlert={selectedAlert} onSelectAlert={setSelectedAlert} />}
-        {activePage === "exposure" && (
-          <ExposureView
-            vulnerabilities={vulnerabilities}
-            selectedPlan={selectedPlan}
-            onCreatePlan={(item) => {
-              setSelectedPlan(item);
-              setNotice(`Fix plan created for ${item.issue}: owner ${item.owner}, target SLA ${item.sla}.`);
-            }}
-          />
+        {activePage === "topology" ? (
+          <TopologyView />
+        ) : activePage === "sources" ? (
+          <SourcesView alerts={alerts} />
+        ) : activePage === "assets" ? (
+          <AssetsView alerts={alerts} />
+        ) : activePage === "data" ? (
+          <DataView vulnerabilities={vulnerabilities} />
+        ) : activePage === "reports" ? (
+          <ReportsView alerts={alerts} vulnerabilities={vulnerabilities} />
+        ) : (
+          <Dashboard alerts={alerts} breach={breach} vulnerabilities={vulnerabilities} />
         )}
       </main>
     </div>
